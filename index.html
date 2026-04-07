@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>The Routine</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    background: #0a0a0f;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+  .container { padding: 24px 16px; max-width: 500px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 28px; }
+  .header-sub {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 6px;
+    text-transform: uppercase; color: #475569; margin-bottom: 8px;
+  }
+  .header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px; font-weight: 700; letter-spacing: -1px;
+    background: linear-gradient(135deg, #f87171 0%, #fb923c 50%, #fbbf24 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-info { font-size: 11px; color: #475569; margin-top: 4px; }
+
+  .day-selector { display: flex; gap: 4px; margin-bottom: 20px; justify-content: center; }
+  .day-btn {
+    flex: 0 0 auto; padding: 10px 0; width: 44px;
+    border: 1px solid #1e293b; border-radius: 8px;
+    background: #111118; color: #64748b; cursor: pointer;
+    font-size: 10px; font-weight: 500;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;
+    transition: all 0.2s; position: relative;
+  }
+  .day-btn.active {
+    border-color: #f97316; background: rgba(249,115,22,0.15);
+    color: #fb923c; font-weight: 700;
+  }
+  .fast-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #f97316; position: absolute; top: 4px; right: 4px;
+  }
+
+  .fasting-badge {
+    padding: 12px 16px; border-radius: 10px; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .fasting-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 700;
+  }
+  .fasting-detail { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+  .fasting-icon { font-size: 22px; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 6px 12px;
+    margin-bottom: 16px; padding: 8px 12px;
+    background: #111118; border-radius: 8px; border: 1px solid #1e293b;
+  }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .legend-label {
+    font-size: 9px; color: #64748b;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .timeline { position: relative; padding-left: 20px; }
+  .timeline-line {
+    position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px;
+    background: linear-gradient(to bottom, #1e293b 0%, #334155 50%, #1e293b 100%);
+    border-radius: 1px;
+  }
+
+  .block { position: relative; margin-bottom: 8px; }
+  .block-dot {
+    position: absolute; left: -16px; top: 14px;
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid #0a0a0f; z-index: 1;
+  }
+  .block-content {
+    border: 1px solid transparent; border-radius: 10px;
+    padding: 10px 14px; transition: all 0.2s;
+  }
+  .block-row { display: flex; align-items: center; gap: 10px; }
+  .block-icon { font-size: 18px; flex-shrink: 0; }
+  .block-info { flex: 1; min-width: 0; }
+  .block-activity {
+    font-size: 13px; font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif; color: #e2e8f0;
+  }
+  .block-time { font-size: 10px; color: #64748b; margin-top: 1px; }
+  .block-arrow { font-size: 10px; transition: transform 0.2s; }
+  .block-arrow.open { transform: rotate(180deg); }
+  .block-note {
+    margin-top: 8px; padding-top: 8px;
+    font-size: 12px; line-height: 1.5; color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    display: none;
+  }
+  .block-note.open { display: block; }
+
+  .summary {
+    margin-top: 24px; padding: 16px;
+    background: #111118; border-radius: 12px; border: 1px solid #1e293b;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px; font-weight: 600; color: #64748b;
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;
+  }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 10px 12px; background: rgba(30,41,59,0.4); border-radius: 8px; }
+  .stat-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px; font-weight: 700; color: #e2e8f0; margin-top: 2px;
+  }
+  .stat-sub { font-size: 9px; color: #475569; margin-top: 2px; }
+
+  .principles {
+    margin-top: 16px; padding: 16px;
+    background: #111118; border-radius: 12px; border: 1px solid #1e293b;
+  }
+  .principle { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 8px; }
+  .principle:last-child { margin-bottom: 0; }
+  .principle strong { font-weight: 700; }
+
+  .footer {
+    margin-top: 16px; text-align: center;
+    font-size: 9px; color: #334155; letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DAY_ABBR = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+
+const schedule = {
+  Monday: {
+    fasting: "Full Fast",
+    fastingDetail: "Water, black coffee, electrolytes only",
+    blocks: [
+      { time: "5:30 AM", activity: "Wake + Cold Water + Electrolytes", icon: "\u{1F4A7}", type: "habit" },
+      { time: "6:00 AM", activity: "Full Body Lift \u2014 Session A", icon: "\u{1F3CB}\uFE0F", type: "lift", note: "Squat 4x5 \u00B7 Bench 4x5 \u00B7 Barbell Row 3x8 \u00B7 RDL 3x10 \u00B7 Lateral Raise 3x15. Fasted lifting \u2014 sip electrolytes between sets." },
+      { time: "7:15 AM", activity: "Shower + Prep", icon: "\u{1F6BF}", type: "habit" },
+      { time: "7:30 AM", activity: "Work Block", icon: "\u{1F4BB}", type: "work" },
+      { time: "12:00 PM", activity: "Walk \u2014 20 min", icon: "\u{1F6B6}", type: "neat" },
+      { time: "5:00 PM", activity: "Light Walk or Rest", icon: "\u{1F33F}", type: "neat" },
+      { time: "10:00 PM", activity: "Wind Down \u2014 No Screens", icon: "\u{1F4F5}", type: "habit" },
+      { time: "10:30 PM", activity: "Lights Out", icon: "\u{1F319}", type: "sleep" }
+    ]
+  },
+  Tuesday: {
+    fasting: "Fast Until Dinner",
+    fastingDetail: "Break fast at dinner (~6 PM). High protein meal.",
+    blocks: [
+      { time: "5:30 AM", activity: "Wake + Black Coffee + Electrolytes", icon: "\u2615", type: "habit" },
+      { time: "6:00 AM", activity: "Easy Run \u2014 25-30 min (Zone 2)", icon: "\u{1F3C3}", type: "cardio", note: "Fasted cardio. Keep heart rate low. Conversational pace. Build aerobic base." },
+      { time: "6:45 AM", activity: "Stretch + Shower", icon: "\u{1F9D8}", type: "recovery" },
+      { time: "7:30 AM", activity: "Work Block", icon: "\u{1F4BB}", type: "work" },
+      { time: "12:00 PM", activity: "Walk \u2014 20 min", icon: "\u{1F6B6}", type: "neat" },
+      { time: "6:00 PM", activity: "Break Fast \u2014 High Protein Dinner", icon: "\u{1F37D}\uFE0F", type: "meal", note: "~60-70g protein. Lean meat + rice/potatoes + veggies. Refuel hard after yesterday's lift + today's run." },
+      { time: "7:00 PM", activity: "Second Meal / Snack", icon: "\u{1F95C}", type: "meal", note: "Greek yogurt, eggs, or shake. Get total to ~100g+ protein for the day." },
+      { time: "10:00 PM", activity: "Wind Down", icon: "\u{1F4F5}", type: "habit" },
+      { time: "10:30 PM", activity: "Lights Out", icon: "\u{1F319}", type: "sleep" }
+    ]
+  },
+  Wednesday: {
+    fasting: "Normal Eating",
+    fastingDetail: "3 meals. High protein all day. Biggest eating day.",
+    blocks: [
+      { time: "5:30 AM", activity: "Wake + Water", icon: "\u{1F4A7}", type: "habit" },
+      { time: "6:00 AM", activity: "Full Body Lift \u2014 Session B", icon: "\u{1F3CB}\uFE0F", type: "lift", note: "Deadlift 4x5 \u00B7 OHP 4x5 \u00B7 Pull-ups 3x8 \u00B7 Leg Press 3x10 \u00B7 Face Pulls 3x15" },
+      { time: "7:15 AM", activity: "Shower + Prep", icon: "\u{1F6BF}", type: "habit" },
+      { time: "7:30 AM", activity: "Breakfast \u2014 High Protein", icon: "\u{1F373}", type: "meal", note: "Eggs, oats, fruit. ~40g protein. Refuel from the lift." },
+      { time: "8:00 AM", activity: "Work Block", icon: "\u{1F4BB}", type: "work" },
+      { time: "12:30 PM", activity: "Lunch", icon: "\u{1F957}", type: "meal", note: "Chicken/fish + complex carbs + veggies. ~50g protein." },
+      { time: "1:00 PM", activity: "Walk \u2014 15 min", icon: "\u{1F6B6}", type: "neat" },
+      { time: "6:30 PM", activity: "Dinner", icon: "\u{1F37D}\uFE0F", type: "meal", note: "Lean protein + carbs. ~50g protein. Total day target: 200g+." },
+      { time: "10:00 PM", activity: "Wind Down", icon: "\u{1F4F5}", type: "habit" },
+      { time: "10:30 PM", activity: "Lights Out", icon: "\u{1F319}", type: "sleep" }
+    ]
+  },
+  Thursday: {
+    fasting: "OMAD \u2014 Dinner Only",
+    fastingDetail: "One meal at dinner. Pack protein in.",
+    blocks: [
+      { time: "5:30 AM", activity: "Wake + Black Coffee + Electrolytes", icon: "\u2615", type: "habit" },
+      { time: "6:00 AM", activity: "Interval Run \u2014 30 min", icon: "\u{1F3C3}\u200D\u2642\uFE0F", type: "cardio", note: "Warm up 10 min \u2192 6x (1 min hard / 2 min jog) \u2192 Cool down. Push pace on intervals." },
+      { time: "6:45 AM", activity: "Stretch + Shower", icon: "\u{1F9D8}", type: "recovery" },
+      { time: "7:30 AM", activity: "Work Block", icon: "\u{1F4BB}", type: "work" },
+      { time: "12:00 PM", activity: "Walk \u2014 20 min", icon: "\u{1F6B6}", type: "neat" },
+      { time: "6:00 PM", activity: "OMAD Dinner \u2014 Max Protein", icon: "\u{1F37D}\uFE0F", type: "meal", note: "Big meal. 8-10oz meat, large carb portion, veggies, fats. Aim 80-100g protein in this meal." },
+      { time: "7:00 PM", activity: "Dessert / Protein Shake", icon: "\u{1F964}", type: "meal", note: "Top off protein. Casein shake or high-protein snack." },
+      { time: "10:00 PM", activity: "Wind Down", icon: "\u{1F4F5}", type: "habit" },
+      { time: "10:30 PM", activity: "Lights Out", icon: "\u{1F319}", type: "sleep" }
+    ]
+  },
+  Friday: {
+    fasting: "OMAD \u2014 Dinner Only",
+    fastingDetail: "One meal at dinner. Refuel before weekend long run.",
+    blocks: [
+      { time: "5:30 AM", activity: "Wake + Electrolytes", icon: "\u{1F4A7}", type: "habit" },
+      { time: "6:00 AM", activity: "Full Body Lift \u2014 Session C", icon: "\u{1F3CB}\uFE0F", type: "lift", note: "Front Squat 3x6 \u00B7 Incline DB Press 3x10 \u00B7 Cable Row 3x10 \u00B7 Walking Lunges 3x12 \u00B7 Curl/Tri Superset 3x12" },
+      { time: "7:15 AM", activity: "Mobility Work \u2014 15 min", icon: "\u{1F9D8}", type: "recovery", note: "Hip flexors, ankles, thoracic spine. Undo the desk damage." },
+      { time: "7:30 AM", activity: "Shower + Prep", icon: "\u{1F6BF}", type: "habit" },
+      { time: "8:00 AM", activity: "Work Block", icon: "\u{1F4BB}", type: "work" },
+      { time: "12:00 PM", activity: "Walk \u2014 20 min", icon: "\u{1F6B6}", type: "neat" },
+      { time: "6:00 PM", activity: "OMAD Dinner \u2014 Carb-Up", icon: "\u{1F37D}\uFE0F", type: "meal", note: "Higher carbs tonight to fuel Saturday's long run. Pasta, rice, potatoes + protein." },
+      { time: "7:00 PM", activity: "Protein Top-Off", icon: "\u{1F964}", type: "meal" },
+      { time: "10:00 PM", activity: "Wind Down", icon: "\u{1F4F5}", type: "habit" },
+      { time: "10:30 PM", activity: "Lights Out", icon: "\u{1F319}", type: "sleep" }
+    ]
+  },
+  Saturday: {
+    fasting: "Normal Eating",
+    fastingDetail: "3 meals. Refuel and recover. Enjoy your food.",
+    blocks: [
+      { time: "5:30 AM", activity: "Wake + Water + Light Snack", icon: "\u{1F34C}", type: "habit", note: "Banana or toast 30 min before run." },
+      { time: "6:15 AM", activity: "Long Run \u2014 40-50 min (Zone 2)", icon: "\u{1F3C3}\u200D\u2642\uFE0F", type: "cardio", note: "This is your 5K builder. Conversational pace. Add 5 min every 2 weeks." },
+      { time: "7:15 AM", activity: "Stretch + Foam Roll", icon: "\u{1F9D8}", type: "recovery" },
+      { time: "8:00 AM", activity: "Big Breakfast", icon: "\u{1F373}", type: "meal", note: "Eggs, avocado, toast, fruit. Reward the effort. ~50g protein." },
+      { time: "12:30 PM", activity: "Lunch", icon: "\u{1F957}", type: "meal" },
+      { time: "2:00 PM", activity: "Active Recovery \u2014 Walk, Hike, or Swim", icon: "\u{1F33F}", type: "neat" },
+      { time: "6:30 PM", activity: "Dinner", icon: "\u{1F37D}\uFE0F", type: "meal", note: "Balanced plate. Protein + carbs + veggies." },
+      { time: "10:00 PM", activity: "Wind Down", icon: "\u{1F4F5}", type: "habit" },
+      { time: "10:30 PM", activity: "Lights Out", icon: "\u{1F319}", type: "sleep" }
+    ]
+  },
+  Sunday: {
+    fasting: "Normal Eating",
+    fastingDetail: "3 meals. Meal prep day. Set up the week.",
+    blocks: [
+      { time: "5:30 AM", activity: "Wake + Water", icon: "\u{1F4A7}", type: "habit" },
+      { time: "6:00 AM", activity: "Rest Day \u2014 Light Stretch or Walk", icon: "\u{1F33F}", type: "recovery", note: "Full rest. Your body rebuilds today. Light movement only." },
+      { time: "7:00 AM", activity: "Shower + Prep", icon: "\u{1F6BF}", type: "habit" },
+      { time: "7:45 AM", activity: "Breakfast", icon: "\u{1F373}", type: "meal" },
+      { time: "10:00 AM", activity: "Meal Prep for the Week", icon: "\u{1F9D1}\u200D\u{1F373}", type: "habit", note: "Prep proteins, rice, veggies. Pack Tuesday & Thursday dinners especially." },
+      { time: "12:30 PM", activity: "Lunch", icon: "\u{1F957}", type: "meal" },
+      { time: "2:00 PM", activity: "Free Time / Light Activity", icon: "\u{1F33F}", type: "neat" },
+      { time: "6:30 PM", activity: "Dinner", icon: "\u{1F37D}\uFE0F", type: "meal" },
+      { time: "9:30 PM", activity: "Weekly Review + Plan Next Week", icon: "\u{1F4CB}", type: "habit", note: "Check weight trend. Adjust calories if needed. Set intentions." },
+      { time: "10:00 PM", activity: "Wind Down", icon: "\u{1F4F5}", type: "habit" },
+      { time: "10:30 PM", activity: "Lights Out", icon: "\u{1F319}", type: "sleep" }
+    ]
+  }
+};
+
+const typeColors = {
+  habit:    { bg: "rgba(148,163,184,0.12)", border: "#64748b", text: "#94a3b8" },
+  cardio:   { bg: "rgba(251,146,60,0.12)",  border: "#f97316", text: "#fb923c" },
+  lift:     { bg: "rgba(239,68,68,0.12)",    border: "#ef4444", text: "#f87171" },
+  meal:     { bg: "rgba(34,197,94,0.12)",    border: "#22c55e", text: "#4ade80" },
+  work:     { bg: "rgba(96,165,250,0.12)",   border: "#3b82f6", text: "#60a5fa" },
+  recovery: { bg: "rgba(168,85,247,0.12)",   border: "#a855f7", text: "#c084fc" },
+  neat:     { bg: "rgba(45,212,191,0.12)",   border: "#14b8a6", text: "#2dd4bf" },
+  sleep:    { bg: "rgba(99,102,241,0.12)",   border: "#6366f1", text: "#818cf8" }
+};
+
+const fastingStyles = {
+  "Full Fast":            { bg: "linear-gradient(135deg, #dc2626, #991b1b)", icon: "\u{1F534}" },
+  "Fast Until Dinner":    { bg: "linear-gradient(135deg, #ea580c, #9a3412)", icon: "\u{1F7E1}" },
+  "OMAD \u2014 Dinner Only": { bg: "linear-gradient(135deg, #d97706, #92400e)", icon: "\u{1F7E1}" },
+  "Normal Eating":        { bg: "linear-gradient(135deg, #16a34a, #14532d)", icon: "\u{1F7E2}" }
+};
+
+const fastingDays = new Set(["Monday","Thursday","Friday","Tuesday"]);
+
+let selectedDay = "Monday";
+let expandedBlock = null;
+
+function render() {
+  const day = schedule[selectedDay];
+  const fs = fastingStyles[day.fasting] || fastingStyles["Normal Eating"];
+
+  let html = `
+    <div class="header">
+      <div class="header-sub">Weekly Protocol</div>
+      <h1>THE ROUTINE</h1>
+      <div class="header-info">5:30 AM Wake \u00B7 10:30 PM Sleep \u00B7 7hrs Recovery</div>
+    </div>
+    <div class="day-selector">
+  `;
+
+  DAYS.forEach((d, i) => {
+    const active = d === selectedDay ? " active" : "";
+    const dot = fastingDays.has(d) ? '<div class="fast-dot"></div>' : "";
+    html += `<button class="day-btn${active}" onclick="selectDay('${d}')">${DAY_ABBR[i]}${dot}</button>`;
+  });
+
+  html += `</div>
+    <div class="fasting-badge" style="background:${fs.bg};color:#fff">
+      <div>
+        <div class="fasting-title">${day.fasting}</div>
+        <div class="fasting-detail">${day.fastingDetail}</div>
+      </div>
+      <div class="fasting-icon">${fs.icon}</div>
+    </div>
+    <div class="legend">
+  `;
+
+  Object.entries(typeColors).forEach(([type, c]) => {
+    html += `<div class="legend-item"><div class="legend-dot" style="background:${c.border}"></div><span class="legend-label">${type}</span></div>`;
+  });
+
+  html += `</div><div class="timeline"><div class="timeline-line"></div>`;
+
+  day.blocks.forEach((block, i) => {
+    const tc = typeColors[block.type] || typeColors.habit;
+    const isOpen = expandedBlock === i;
+    const borderStyle = isOpen ? tc.border : "transparent";
+    const noteDiv = block.note
+      ? `<div class="block-note${isOpen ? ' open' : ''}" style="border-top-color:${tc.border}33">${block.note}</div>`
+      : "";
+    const arrow = block.note
+      ? `<div class="block-arrow${isOpen ? ' open' : ''}" style="color:${tc.text}">\u25BC</div>`
+      : "";
+    const cursor = block.note ? "cursor:pointer" : "";
+
+    html += `
+      <div class="block" onclick="${block.note ? `toggleBlock(${i})` : ''}" style="${cursor}">
+        <div class="block-dot" style="background:${tc.border}"></div>
+        <div class="block-content" style="background:${tc.bg};border-color:${borderStyle}">
+          <div class="block-row">
+            <span class="block-icon">${block.icon}</span>
+            <div class="block-info">
+              <div class="block-activity">${block.activity}</div>
+              <div class="block-time">${block.time}</div>
+            </div>
+            ${arrow}
+          </div>
+          ${noteDiv}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>
+    <div class="summary">
+      <div class="section-title">Weekly Overview</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Lifting</div><div class="stat-value">3x/week</div><div class="stat-sub">Mon \u00B7 Wed \u00B7 Fri</div></div>
+        <div class="stat-card"><div class="stat-label">Running</div><div class="stat-value">3x/week</div><div class="stat-sub">Tue \u00B7 Thu \u00B7 Sat</div></div>
+        <div class="stat-card"><div class="stat-label">Fasting Days</div><div class="stat-value">1 full + 2 OMAD</div><div class="stat-sub">Mon \u00B7 Thu \u00B7 Fri</div></div>
+        <div class="stat-card"><div class="stat-label">Normal Eating</div><div class="stat-value">4 days</div><div class="stat-sub">Wed \u00B7 Sat \u00B7 Sun + Tue dinner</div></div>
+      </div>
+    </div>
+    <div class="principles">
+      <div class="section-title">Key Principles</div>
+      <div class="principle"><strong style="color:#f87171">Protein:</strong> Aim for 200g+ on eating days. On OMAD/fast-break days, front-load protein at dinner.</div>
+      <div class="principle"><strong style="color:#fb923c">Lifting:</strong> Full-body 3x/week. Heavy compounds to signal muscle retention. Keep intensity high, volume moderate.</div>
+      <div class="principle"><strong style="color:#fbbf24">Running:</strong> 2 easy runs + 1 interval session. Build your 5K base over 6-8 weeks before adding speed work.</div>
+      <div class="principle"><strong style="color:#2dd4bf">NEAT:</strong> Daily walks are non-negotiable. They burn more calories over time than any single workout.</div>
+      <div class="principle"><strong style="color:#818cf8">Sleep:</strong> 10:30 PM lights out, 5:30 AM wake. Consistent 7hrs. No screens after 10 PM.</div>
+    </div>
+    <div class="footer">TAP ANY BLOCK FOR DETAILS \u00B7 BUILT FOR YOU</div>
+  `;
+
+  document.getElementById("app").innerHTML = html;
+}
+
+function selectDay(d) {
+  selectedDay = d;
+  expandedBlock = null;
+  render();
+}
+
+function toggleBlock(i) {
+  expandedBlock = expandedBlock === i ? null : i;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
